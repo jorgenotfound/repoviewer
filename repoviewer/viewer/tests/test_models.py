@@ -5,12 +5,22 @@ from datetime import datetime
 # Create your tests here.
 class TestModels(TestCase):
 
+    def setUp(self):
+        self.organization_str = 'The GitHub Training Team'
+
     def test_organization(self):
-        organization_str = 'The GitHub Training Team'
+
         org = Organization(name='The GitHub Training Team',
                            url='https://github.com/githubtraining')
         self.assertIsInstance(org, Organization)
-        self.assertEqual(organization_str, str(org))
+        self.assertEqual(self.organization_str, str(org))
+
+    def test_get_organization_data(self):
+        org = Organization.get_organization_data('githubtraining')
+        self.assertIsInstance(org, Organization)
+        self.assertEqual(self.organization_str, str(org))
+        repos = org.repository_set.all()
+        self.assertEqual(len(repos), 32)
 
     def test_query_statistic(self):
         now = datetime.now()

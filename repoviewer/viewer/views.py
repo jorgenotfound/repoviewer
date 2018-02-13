@@ -4,10 +4,9 @@ from django.views.generic import FormView
 from django.views.generic import TemplateView
 from github.GithubException import UnknownObjectException
 
-from .forms import HomeQueryForm
+from .forms import HomeQueryForm, RepositoryQueryForm
 from .util import GithubManager
-from .models import Organization, QueryStatistic
-
+from .models import Organization, QueryStatistic, Repository
 
 
 class HomeView(FormView):
@@ -27,21 +26,10 @@ class HomeView(FormView):
         login = form.cleaned_data.get('query')
         last_query = QueryStatistic(query_text=login, is_valid=True)
         last_query.save()
-        g = GithubManager()
         try:
-            organization_data = g.get_organization(login)
-
-            try:
-                org = Organization.objects.get(login=login)
-            except Organization.DoesNotExist:
-                org = Organization(name=organization_data.name,
-                                   url=organization_data.url,
-                                   login=organization_data.login)
-                org.save()
-            finally:
-                # repositories
-                self.success_url = reverse_lazy('organization_detail',
-                                                kwargs={'pk': org.pk})
+            org = Organization.get_organization_data(login)
+            self.success_url = reverse_lazy('organization_detail',
+                                            kwargs={'pk': org.pk})
         except UnknownObjectException:
             self.success_url = reverse_lazy('invalid_query')
 
@@ -57,3 +45,17 @@ class OrganizationDetailView(DetailView):
     template_name = 'viewer/organization.html'
     context_object_name = 'organization'
 
+    def get_context_data(self, **kwargs):
+        context = super(OrganizationDetailView, self).get_context_data(**kwargs)
+        context['search_form'] = RepositoryQueryForm(data=self.request.GET)
+        org = context['organization']
+        repos_queryset = Repository.objects.filter(organization=org)
+        if self.request.GET.get('name'):
+            repos_queryset = repos_queryset.filter(
+                name__icontains=self.request.GET.get('name'))
+        if self.request.GET.get('sorting_field'):
+            order = '{}{}'.format(self.request.GET.get('sorting_order'),
+                                  self.request.GET.get('sorting_field'))
+            repos_queryset = repos_queryset.order_by(order)
+        context['repos'] = repos_queryset
+        return context
