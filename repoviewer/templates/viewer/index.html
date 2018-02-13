@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Buscar organización{% endblock %}
+
+{% block content%}
+<h2>Buscador de organizaciones</h2>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.query }}
+    <button type="submit" class="btn btn-primary"> Guardar</button>
+</form>
+
+<p>{% if latest_query %} {{ latest_query}} {% else%}No ha hecho ninguna consulta{% endif %}</p>
+{% endblock content%}
