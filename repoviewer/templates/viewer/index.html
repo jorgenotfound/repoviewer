@@ -3,12 +3,26 @@
 {% block title %}Buscar organización{% endblock %}
 
 {% block content%}
-<h2>Buscador de organizaciones</h2>
-<form method="POST">
-    {% csrf_token %}
-    {{ form.query }}
-    <button type="submit" class="btn btn-primary"> Guardar</button>
-</form>
+<div class="text-center">
+    <h2>Buscador de organizaciones</h2>
+    <form method="POST" class="form-inline">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.query }}
+        </div>
+        <button type="submit" class="btn btn-primary"> Guardar</button>
 
-<p>{% if latest_query %} {{ latest_query}} {% else%}No ha hecho ninguna consulta{% endif %}</p>
+    </form>
+    <br>
+    <div class="text-info">
+        {% if latest_query %}
+            Ultima consulta a la API: {{ latest_query.query_text}} realizada el {{ latest_query.query_date |date:"SHORT_DATETIME_FORMAT"}}
+        {% else %}
+            {% filter upper %}No ha hecho ninguna consulta {% endfilter %}
+        {% endif %}
+    </div>
+</div>
+
+
+
 {% endblock content%}
